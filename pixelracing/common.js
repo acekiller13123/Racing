@@ -1,7 +1,3 @@
-//=========================================================================
-// minimalist DOM helpers
-//=========================================================================
-
 var Dom = {
 
   get:  function(id)                     { return ((id instanceof HTMLElement) || (id === document)) ? id : document.getElementById(id); },
@@ -28,11 +24,6 @@ var Dom = {
   storage: window.localStorage || {}
 
 }
-
-//=========================================================================
-// general purpose helpers (mostly math)
-//=========================================================================
-
 var Util = {
 
   timestamp:        function()                  { return new Date().getTime();                                    },
@@ -78,11 +69,6 @@ var Util = {
   }
 
 }
-
-//=========================================================================
-// POLYFILL for requestAnimationFrame
-//=========================================================================
-
 if (!window.requestAnimationFrame) { // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
   window.requestAnimationFrame = window.webkitRequestAnimationFrame || 
                                  window.mozRequestAnimationFrame    || 
@@ -92,10 +78,6 @@ if (!window.requestAnimationFrame) { // http://paulirish.com/2011/requestanimati
                                    window.setTimeout(callback, 1000 / 60);
                                  }
 }
-
-//=========================================================================
-// GAME LOOP helpers
-//=========================================================================
 
 var Game = {  // a modified version of the game loop from my previous boulderdash game - see http://codeincomplete.com/posts/2011/10/25/javascript_boulderdash/#gameloop
 
@@ -107,37 +89,36 @@ var Game = {  // a modified version of the game loop from my previous boulderdas
 
       Game.setKeyListener(options.keys);
 
-      var canvas = options.canvas,    // canvas render target is provided by caller
-          update = options.update,    // method to update game logic is provided by caller
-          render = options.render,    // method to render the game is provided by caller
-          step   = options.step,      // fixed frame step (1/fps) is specified by caller
-//          stats  = options.stats,     // stats instance is provided by caller
-          now    = null,
+      var canvas = options.canvas,    
+          update = options.update,   
+          render = options.render,    
+          step   = options.step,      
+
           last   = Util.timestamp(),
           dt     = 0,
           gdt    = 0;
 
       function frame() {
         now = Util.timestamp();
-        dt  = Math.min(1, (now - last) / 1000); // using requestAnimationFrame have to be able to handle large delta's caused when it 'hibernates' in a background or non-visible tab
+        dt  = Math.min(1, (now - last) / 1000); 
         gdt = gdt + dt;
         while (gdt > step) {
           gdt = gdt - step;
           update(step);
         }
         render();
-//        stats.update();
+
         last = now;
         requestAnimationFrame(frame, canvas);
       }
-      frame(); // lets get this party started
+      frame();
       Game.playMusic();
     });
   },
 
   //---------------------------------------------------------------------------
 
-  loadImages: function(names, callback) { // load multiple images and callback when ALL images have loaded
+  loadImages: function(names, callback) {
     var result = [];
     var count  = names.length;
 
@@ -173,56 +154,12 @@ var Game = {  // a modified version of the game loop from my previous boulderdas
     Dom.on(document, 'keyup',   function(ev) { onkey(ev.keyCode, 'up');   } );
   },
 
-  //---------------------------------------------------------------------------
-
-/*
-  stats: function(parentId, id) { // construct mr.doobs FPS counter - along with friendly good/bad/ok message box
-
-    var result = new Stats();
-    result.domElement.id = id || 'stats';
-    Dom.get(parentId).appendChild(result.domElement);
-
-    var msg = document.createElement('div');
-    msg.style.cssText = "border: 2px solid gray; padding: 5px; margin-top: 5px; text-align: left; font-size: 1.15em; text-align: right;";
-    msg.innerHTML = "Your canvas performance is ";
-    Dom.get(parentId).appendChild(msg);
-
-    var value = document.createElement('span');
-    value.innerHTML = "...";
-    msg.appendChild(value);
-
-    setInterval(function() {
-      var fps   = result.current();
-      var ok    = (fps > 50) ? 'good'  : (fps < 30) ? 'bad' : 'ok';
-      var color = (fps > 50) ? 'green' : (fps < 30) ? 'red' : 'gray';
-      value.innerHTML       = ok;
-      value.style.color     = color;
-      msg.style.borderColor = color;
-    }, 5000);
-    return result;
-  },
-
-*/
-  //---------------------------------------------------------------------------
-
+  
   playMusic: function() {
-/*    var music = Dom.get('music');
-    music.loop = true;
-    music.volume = 0.05; // shhhh! annoying music!
-    music.muted = (Dom.storage.muted === "true");
-    music.play();
-    Dom.toggleClassName('mute', 'on', music.muted);
-    Dom.on('mute', 'click', function() {
-      Dom.storage.muted = music.muted = !music.muted;
-      Dom.toggleClassName('mute', 'on', music.muted);
-    }); */
+
   }
 
 }
-
-//=========================================================================
-// canvas rendering helpers
-//=========================================================================
 
 var Render = {
 
@@ -295,7 +232,7 @@ var Render = {
 
   sprite: function(ctx, width, height, resolution, roadWidth, sprites, sprite, scale, destX, destY, offsetX, offsetY, clipY) {
 
-                    //  scale for projection AND relative to roadWidth (for tweakUI)
+                   
     var destW  = (sprite.w * scale * width/2) * (SPRITES.SCALE * roadWidth);
     var destH  = (sprite.h * scale * width/2) * (SPRITES.SCALE * roadWidth);
 
@@ -340,9 +277,6 @@ var Render = {
 
 }
 
-//=============================================================================
-// RACING GAME CONSTANTS
-//=============================================================================
 
 var KEY = {
   LEFT:  37,
@@ -408,10 +342,9 @@ var SPRITES = {
   PLAYER_RIGHT:           { x:  995, y:  531, w:   80, h:   41 }
 };
 
-SPRITES.SCALE = 0.3 * (1/SPRITES.PLAYER_STRAIGHT.w) // the reference sprite width should be 1/3rd the (half-)roadWidth
+SPRITES.SCALE = 0.3 * (1/SPRITES.PLAYER_STRAIGHT.w) 
 
 SPRITES.BILLBOARDS = [SPRITES.BILLBOARD01, SPRITES.BILLBOARD02, SPRITES.BILLBOARD03, SPRITES.BILLBOARD04, SPRITES.BILLBOARD05, SPRITES.BILLBOARD06, SPRITES.BILLBOARD07, SPRITES.BILLBOARD08, SPRITES.BILLBOARD09];
-//SPRITES.PLANTS     = [SPRITES.TREE1, SPRITES.TREE2, SPRITES.DEAD_TREE1, SPRITES.DEAD_TREE2, SPRITES.PALM_TREE, SPRITES.BUSH1, SPRITES.BUSH2, SPRITES.CACTUS, SPRITES.STUMP, SPRITES.BOULDER1, SPRITES.BOULDER2, SPRITES.BOULDER3];
 SPRITES.PLANTS     = [SPRITES.TREE1, SPRITES.TREE2, SPRITES.DEAD_TREE1, SPRITES.DEAD_TREE2, SPRITES.PALM_TREE, SPRITES.BUSH2, SPRITES.CACTUS, SPRITES.STUMP, SPRITES.BOULDER1, SPRITES.BOULDER2];
 SPRITES.CARS       = [SPRITES.CAR01, SPRITES.CAR02, SPRITES.CAR03, SPRITES.CAR04, SPRITES.SEMI, SPRITES.TRUCK];
 
