@@ -34,6 +34,7 @@
       <span id="current_lap_time" class="hud">Time: <span id="current_lap_time_value" class="value">0.0</span></span> 
       <span id="last_lap_time"    class="hud">Last Lap: <span id="last_lap_time_value" class="value">0.0</span></span>
       <span id="fast_lap_time"    class="hud">Fastest Lap: <span id="fast_lap_time_value" class="value">0.0</span></span>
+      <span id="ai_advice"        class="hud">AI: <span id="ai_advice_value" class="value"></span></span>
     </div>
     <canvas id="canvas">
       Sorry, cannot run because your browser does not support &lt;canvas&gt; element
@@ -138,6 +139,8 @@
     var totalCars      = 200;                     // total number of cars on the road
     var currentLapTime = 0;                       // current lap time
     var lastLapTime    = null;                    // last lap time
+    var collided       = false;                   // flag for collision
+    var collisionType  = null;                    // type of collision: "car" or "boundary"
 
     var keyLeft        = false;
     var keyRight       = false;
@@ -148,7 +151,8 @@
       speed:            { value: null, dom: Dom.get('speed_value')            },
       current_lap_time: { value: null, dom: Dom.get('current_lap_time_value') },
       last_lap_time:    { value: null, dom: Dom.get('last_lap_time_value')    },
-      fast_lap_time:    { value: null, dom: Dom.get('fast_lap_time_value')    }
+      fast_lap_time:    { value: null, dom: Dom.get('fast_lap_time_value')    },
+      ai_advice:        { value: null, dom: Dom.get('ai_advice_value')        }
     }
 
     
@@ -208,6 +212,8 @@
           spriteW = sprite.source.w * SPRITES.SCALE;
           if (Util.overlap(playerX, playerW, sprite.offset + spriteW/2 * (sprite.offset > 0 ? 1 : -1), spriteW)) {
             speed = maxSpeed/5;
+            collisionType = "boundary";
+            collided = true;
             position = Util.increase(playerSegment.p1.world.z, -playerZ, trackLength); // stop in front of sprite (at front of segment)
             break;
           }
@@ -220,6 +226,8 @@
         if (speed > car.speed) {
           if (Util.overlap(playerX, playerW, car.offset, carW, 0.8)) {
             speed    = car.speed * (car.speed/speed);
+            collisionType = "car";
+            collided = true;
             position = Util.increase(car.z, -playerZ, trackLength);
             break;
           }
@@ -257,6 +265,7 @@
 
       updateHud('speed',            5 * Math.round(speed/500));
       updateHud('current_lap_time', formatTime(currentLapTime));
+      updateHud('ai_advice',        getAIAdvice());
     }
 
     //-------------------------------------------------------------------------
@@ -340,6 +349,35 @@
         return minutes + "." + (seconds < 10 ? "0" : "") + seconds + "." + tenths;
       else
         return seconds + "." + tenths;
+    }
+
+    function getAIAdvice() {
+      var advice = "";
+      if (collided) {
+        if (collisionType === "car") {
+          advice += "Stop damaging other peoples property! ";
+        } else {
+          advice += "Stop being a dumb kid! ";
+        }
+        collided = false;
+        collisionType = null;
+      }
+      if (speed > maxSpeed * 0.8) {
+        advice += "You are going too fast! ";
+      }
+      var currentSegment = findSegment(position + playerZ);
+      var lookAhead = 10;
+      for (var i = 1; i <= lookAhead; i++) {
+        var seg = segments[(currentSegment.index + i) % segments.length];
+        if (seg.curve > 0.1) {
+          advice += "Turn right ahead! ";
+          break;
+        } else if (seg.curve < -0.1) {
+          advice += "Turn left ahead! ";
+          break;
+        }
+      }
+      return advice.trim();
     }
 
     //=========================================================================
